@@ -6,5 +6,6 @@ setup(name='gender_predictor',
       author='Clint Valentine',
       author_email='valentine.clint@gmail.com',
       url='https://github.com/clintval/gender_predictor',
-      packages=find_packages()
+      packages=find_packages(),
+      install_requires=['nltk'],
       )
