@@ -18,13 +18,22 @@ class GenderPredictor():
         self.feature_set = []
 
         for name_results in self._get_USSSA_data:
-            name, male_counts, female_counts = name_results
+            name,male_counts, female_counts = name_results
 
             if male_counts == female_counts:
                 continue
-
+             
             features = self._name_features(name)
+        
             gender = 'M' if male_counts > female_counts else 'F'
+            if  mydict['last_four']=='NDRA' or mydict['last_three']=='HAY' or mydict['last_three']=='PAL' or\
+                mydict['last_three']=='NNY' or mydict['last_three']=='ORE' or mydict['last_two']=='AI':
+                gender=gender.replace('F', 'M')
+            elif mydict['last_three']=='EEN' or mydict['last_three']=='ELL' or mydict['last_three']=='YLL' or mydict['last_two']=='OL' or \
+                mydict['last_two']=='AL' or mydict['last_three']=='BEN' or mydict['last_three']=='FER'  or mydict['first_three']=='MRS' or\
+                mydict['last_two']=='EL':
+                gender=gender.replace('M', 'F')
+          
             counts.update([gender])
 
             m_prob = male_counts / sum([male_counts, female_counts])
@@ -34,10 +43,10 @@ class GenderPredictor():
             features['f_prob'] = 1 - m_prob
             self.feature_set.append((features, gender))
 
-        print('{M:,} male names\n{F:,} female names'.format(**counts))
+        #print('{M:,} male names\n{F:,} female names'.format(**counts))
 
     def classify(self, name):
-        return(self.classifier.classify(self._name_features(name.upper())))
+            return(self.classifier.classify(self._name_features(name.upper())))
 
     def train_and_test(self, percent_to_train=0.80):
         _random.shuffle(self.feature_set)
@@ -46,16 +55,22 @@ class GenderPredictor():
         test = self.feature_set[partition:]
 
         self.classifier = _nltk.NaiveBayesClassifier.train(train)
-        print("classifier accuracy: {:0.2%}".format(
-            _nltk.classify.accuracy(self.classifier, test)))
-
+        #print("classifier accuracy: {:0.2%}".format(
+            #_nltk.classify.accuracy(self.classifier, test)))
+    
     def _name_features(self, name):
-        return({
+        global mydict
+        mydict={
+            'first_three': name[:3],
             'last_is_vowel': (name[-1] in 'AEIOUY'),
             'last_letter': name[-1],
             'last_three': name[-3:],
-            'last_two': name[-2:]})
+            'last_two': name[-2:],
+            'last_four':name[-4:]}
+    
+        return(mydict)
 
+    
     @property
     def _get_USSSA_data(self):
         if _os.path.isdir(PATH) is False:
@@ -84,5 +99,5 @@ class GenderPredictor():
         else:
             with open(PATH + 'names.pickle', 'rb') as handle:
                 data = _pickle.load(handle)
-                print('import complete')
+                #print('import complete')
         return(data)
